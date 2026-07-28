@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المستودع — منصة إدارة البرامج</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  @font-face{
+    font-family:'Alwatad';
+    src:local('Alwatad'), local('Al-Wattad'), local('AlWatad');
+    font-weight:400 900;
+  }
+  :root{
+    --bg:#ffffff;
+    --bg-2:#f6f7fa;
+    --surface:#ffffff;
+    --surface-2:#f0f2f6;
+    --border:#e0e3ea;
+    --border-soft:#ececf1;
+    --accent:#1d4f9b;
+    --accent-soft:#1d4f9b1f;
+    --accent-2:#7d1935;
+    --accent-2-soft:#7d19351f;
+    --danger:#b3261e;
+    --danger-soft:#b3261e1f;
+    --text:#1c2230;
+    --text-muted:#5b6478;
+    --text-dim:#8b93a6;
+    --radius:14px;
+    --shadow: 0 12px 30px -14px rgba(20,30,60,.18);
+    --font-display:'Alwatad','Tajawal', sans-serif;
+    --font-body:'Alwatad','IBM Plex Sans Arabic', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+    /* category colors */
+    --cat-1:#1d4f9b; /* تعليمية - أزرق */
+    --cat-2:#7d1935; /* إدارية - عنابي */
+    --cat-3:#1f7a4c; /* مالية - أخضر */
+    --cat-4:#b4691e; /* تسويقية - برتقالي */
+    --cat-5:#6a3aa8; /* تقنية - بنفسجي */
+    --cat-6:#5b6478; /* أخرى - رمادي */
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 600px at 85% -10%, #eaf0fb 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, #f7ecef 0%, transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--accent-soft);color:var(--text);}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;}
+  input,select,textarea{font-family:inherit;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  .hidden{display:none !important;}
+
+  /* ---------- Buttons & inputs ---------- */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:10px 18px;border-radius:10px;border:1px solid var(--border);
+    background:var(--surface-2);color:var(--text);cursor:pointer;
+    font-size:14px;font-weight:600;transition:.15s ease;white-space:nowrap;
+  }
+  .btn:hover{border-color:var(--accent);transform:translateY(-1px);}
+  .btn:active{transform:translateY(0);}
+  .btn-primary{background:linear-gradient(180deg,#2d63b3,var(--accent));color:#fff;border-color:transparent;}
+  .btn-primary:hover{filter:brightness(1.06);}
+  .btn-ghost{background:transparent;border-color:var(--border);}
+  .btn-danger{background:var(--danger-soft);border-color:var(--danger);color:#ffb9a8;}
+  .btn-sm{padding:7px 12px;font-size:12.5px;border-radius:8px;}
+  .btn-icon{padding:9px;border-radius:9px;}
+  .btn[disabled]{opacity:.45;cursor:not-allowed;transform:none;}
+
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+  .field label{font-size:12.5px;color:var(--text-muted);font-weight:600;}
+  .field .hint{font-size:11.5px;color:var(--text-dim);}
+  input[type=text],input[type=password],input[type=number],input[type=url],input[type=search],select,textarea{
+    background:var(--bg-2);border:1px solid var(--border);color:var(--text);
+    padding:11px 13px;border-radius:9px;font-size:14px;width:100%;
+  }
+  textarea{resize:vertical;min-height:70px;}
+  input::placeholder,textarea::placeholder{color:var(--text-dim);}
+
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:11.5px;font-weight:700;letter-spacing:.2px;}
+  .badge-active{background:#1f7a4c1f;color:#1f7a4c;border:1px solid #1f7a4c55;}
+  .badge-inactive{background:var(--danger-soft);color:#b3261e;border:1px solid #b3261e55;}
+  .badge-role{background:var(--accent-soft);color:var(--accent);border:1px solid #1d4f9b55;}
+
+  /* ---------- Auth screens ---------- */
+  .auth-wrap{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  }
+  .auth-card{
+    width:100%;max-width:420px;background:var(--surface);border:1px solid var(--border);
+    border-radius:20px;padding:36px 32px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+  }
+  .auth-card::before{
+    content:"";position:absolute;inset:0 0 auto 0;height:4px;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  }
+  .auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:26px;}
+  .auth-logo .mark{
+    width:44px;height:44px;border-radius:11px;flex-shrink:0;
+    background:linear-gradient(160deg,var(--accent),var(--accent-2));
+    display:flex;align-items:center;justify-content:center;font-family:var(--font-display);
+    font-weight:900;font-size:19px;color:#fff;
+  }
+  .auth-logo h1{font-family:var(--font-display);font-size:19px;margin:0;font-weight:800;}
+  .auth-logo p{margin:2px 0 0;font-size:12px;color:var(--text-muted);}
+  .auth-card h2{font-family:var(--font-display);font-size:15px;color:var(--text-muted);margin:0 0 20px;font-weight:700;}
+  .auth-error{background:var(--danger-soft);border:1px solid #b3261e55;color:#8a1c17;padding:10px 12px;border-radius:9px;font-size:13px;margin-bottom:14px;}
+  .auth-note{background:var(--accent-soft);border:1px solid #1d4f9b55;color:#173c74;padding:10px 12px;border-radius:9px;font-size:12.5px;margin-bottom:14px;line-height:1.7;}
+
+  /* ---------- App shell ---------- */
+  .shell{display:flex;min-height:100vh;}
+  .sidebar{
+    width:250px;flex-shrink:0;background:var(--bg-2);border-left:1px solid var(--border-soft);
+    display:flex;flex-direction:column;padding:20px 16px;position:sticky;top:0;height:100vh;z-index:40;
+  }
+  .side-logo{display:flex;align-items:center;gap:10px;padding:6px 6px 22px;}
+  .side-logo .mark{width:36px;height:36px;border-radius:9px;background:linear-gradient(160deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:900;color:#fff;font-size:15px;flex-shrink:0;}
+  .side-logo h1{font-family:var(--font-display);font-size:16px;margin:0;font-weight:800;}
+  .side-logo p{margin:1px 0 0;font-size:10.5px;color:var(--text-dim);}
+  .nav-group{display:flex;flex-direction:column;gap:3px;margin-bottom:18px;}
+  .nav-label{font-size:10.5px;color:var(--text-dim);font-weight:700;letter-spacing:.5px;padding:10px 10px 4px;}
+  .nav-item{
+    display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;cursor:pointer;
+    color:var(--text-muted);font-size:13.5px;font-weight:600;transition:.15s;border:1px solid transparent;
+  }
+  .nav-item:hover{background:var(--surface);color:var(--text);}
+  .nav-item.active{background:var(--surface-2);color:var(--accent);border-color:var(--border);}
+  .nav-item .ic{width:18px;text-align:center;flex-shrink:0;}
+  .sidebar-foot{margin-top:auto;border-top:1px solid var(--border-soft);padding-top:14px;}
+  .user-chip{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;}
+  .user-chip .av{width:34px;height:34px;border-radius:9px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-weight:800;font-family:var(--font-display);color:var(--accent);flex-shrink:0;}
+  .user-chip .info{overflow:hidden;}
+  .user-chip .name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .user-chip .role{font-size:10.5px;color:var(--text-dim);}
+
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;}
+  .topbar{
+    display:flex;align-items:center;gap:14px;padding:16px 26px;border-bottom:1px solid var(--border-soft);
+    position:sticky;top:0;background:rgba(255,255,255,.88);backdrop-filter:blur(10px);z-index:30;
+  }
+  .topbar .menu-btn{display:none;}
+  .topbar h2{font-family:var(--font-display);font-size:19px;margin:0;font-weight:800;}
+  .topbar .search-box{position:relative;flex:1;max-width:380px;}
+  .topbar .search-box input{padding-right:36px;}
+  .topbar .search-box .ic{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:14px;}
+  .content{padding:24px 26px 60px;max-width:1400px;width:100%;margin:0 auto;}
+
+  /* ---------- Stats ---------- */
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
+  .stat-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px;
+    position:relative;overflow:hidden;
+  }
+  .stat-card .stat-icon{position:absolute;left:14px;top:14px;font-size:22px;opacity:.35;}
+  .stat-card .stat-num{font-family:var(--font-mono);font-size:30px;font-weight:600;color:var(--accent);line-height:1;}
+  .stat-card .stat-label{margin-top:8px;font-size:12.5px;color:var(--text-muted);font-weight:600;}
+
+  /* ---------- Filters ---------- */
+  .filter-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+  .chip{
+    padding:7px 15px;border-radius:100px;border:1px solid var(--border);background:var(--surface);
+    font-size:12.5px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:.15s;
+  }
+  .chip:hover{color:var(--text);}
+  .chip.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+  .spacer{flex:1;}
+  .section-title{font-family:var(--font-display);font-size:15px;font-weight:800;color:var(--text);margin:0 0 4px;}
+  .section-sub{font-size:12.5px;color:var(--text-dim);margin:0 0 18px;}
+
+  /* ---------- Program cards (catalog-card signature) ---------- */
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+  .prog-card{
+    background:
+      repeating-linear-gradient(180deg, transparent 0 3px, transparent 3px 3px);
+    background-color:var(--surface);
+    border:1px solid var(--border);border-radius:12px;position:relative;
+    display:flex;flex-direction:column;transition:.18s ease;overflow:hidden;
+  }
+  .prog-card:hover{transform:translateY(-3px);border-color:#c3cbdb;box-shadow:var(--shadow);}
+  .prog-card .tab{
+    position:absolute;top:0;right:18px;background:var(--accent);color:#fff;
+    font-size:10px;font-weight:800;padding:3px 10px 4px;border-radius:0 0 6px 6px;letter-spacing:.3px;
+  }
+  .prog-card .stamp{
+    position:absolute;left:14px;top:14px;transform:rotate(-8deg);
+    font-size:9.5px;font-weight:800;letter-spacing:.5px;padding:3px 8px;border-radius:5px;border:1.5px solid;
+    text-transform:uppercase;
+  }
+  .prog-card .stamp.on{color:#1f7a4c;border-color:#1f7a4c88;}
+  .prog-card .stamp.off{color:#b3261e;border-color:#b3261e88;}
+  .prog-card .card-body{padding:20px 18px 14px;flex:1;}
+  .prog-card .card-head{display:flex;align-items:flex-start;gap:12px;margin-top:8px;}
+  .prog-icon{width:44px;height:44px;border-radius:10px;flex-shrink:0;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;color:var(--accent);font-size:17px;overflow:hidden;}
+  .prog-icon img{width:100%;height:100%;object-fit:cover;}
+  .prog-card h3{font-family:var(--font-display);font-size:15.5px;margin:0 0 2px;font-weight:800;}
+  .prog-card .cat{font-size:11px;color:var(--accent);font-weight:700;}
+  .prog-card p.desc{font-size:12.8px;color:var(--text-muted);line-height:1.65;margin:12px 0 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .perforation{border-top:1px dashed var(--border);margin:0 18px;}
+  .card-meta{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;font-size:11.5px;color:var(--text-dim);}
+  .card-meta .users{font-family:var(--font-mono);color:var(--text-muted);font-weight:600;}
+  .card-actions{display:flex;gap:6px;padding:0 18px 16px;flex-wrap:wrap;}
+  .card-actions .btn{flex:1;min-width:0;}
+
+  .empty-state{text-align:center;padding:70px 20px;color:var(--text-dim);}
+  .empty-state .ic{font-size:34px;margin-bottom:12px;opacity:.5;}
+  .empty-state h4{font-family:var(--font-display);color:var(--text-muted);margin:0 0 6px;}
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;background:#1c223066;backdrop-filter:blur(3px);
+    display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;
+  }
+  .modal{
+    background:var(--surface);border:1px solid var(--border);border-radius:18px;
+    width:100%;max-width:560px;max-height:88vh;overflow-y:auto;box-shadow:var(--shadow);
+  }
+  .modal.wide{max-width:760px;}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border-soft);position:sticky;top:0;background:var(--surface);z-index:2;}
+  .modal-head h3{font-family:var(--font-display);font-size:16px;margin:0;font-weight:800;}
+  .modal-close{width:30px;height:30px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-muted);cursor:pointer;font-size:15px;}
+  .modal-body{padding:22px;}
+  .modal-foot{display:flex;gap:10px;justify-content:flex-start;padding:16px 22px;border-top:1px solid var(--border-soft);}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;}
+
+  /* details modal specifics */
+  .detail-head{display:flex;gap:16px;align-items:center;margin-bottom:18px;}
+  .detail-icon{width:64px;height:64px;border-radius:14px;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--accent);overflow:hidden;flex-shrink:0;}
+  .detail-icon img{width:100%;height:100%;object-fit:cover;}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0;}
+  .detail-stat{background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+  .detail-stat .l{font-size:11px;color:var(--text-dim);margin-bottom:4px;}
+  .detail-stat .v{font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--text);}
+  .link-row{display:flex;align-items:center;gap:8px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;font-size:12.5px;color:var(--text-muted);margin-bottom:16px;}
+  .link-row span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
+
+  /* changelog */
+  .log-list{display:flex;flex-direction:column;gap:0;}
+  .log-item{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--border-soft);}
+  .log-item .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:6px;flex-shrink:0;}
+  .log-item .txt{font-size:13px;}
+  .log-item .txt b{color:var(--text);}
+  .log-item .meta{font-size:11px;color:var(--text-dim);margin-top:2px;font-family:var(--font-mono);}
+
+  /* toast */
+  .toast-wrap{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;}
+  .toast{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:11px 20px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:var(--shadow);animation:toastIn .2s ease;}
+  .toast.success{border-color:#1f7a4c88;color:#1f7a4c;}
+  .toast.error{border-color:#b3261e88;color:#b3261e;}
+  @keyframes toastIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:18px;}
+  .panel h4{font-family:var(--font-display);font-size:14.5px;margin:0 0 4px;font-weight:800;}
+  .panel .desc-sm{font-size:12px;color:var(--text-dim);margin:0 0 16px;line-height:1.7;}
+  .panel-actions{display:flex;gap:10px;flex-wrap:wrap;}
+  .file-drop{border:1px dashed var(--border);border-radius:10px;padding:16px;text-align:center;font-size:12.5px;color:var(--text-dim);cursor:pointer;background:var(--bg-2);}
+  .file-drop:hover{border-color:var(--accent);color:var(--text-muted);}
+
+  .table-lock-note{
+    display:flex;align-items:center;gap:8px;background:var(--accent-soft);border:1px solid #1d4f9b3d;
+    color:var(--accent);padding:11px 16px;border-radius:10px;font-size:12.8px;font-weight:600;margin-bottom:16px;
+  }
+  .locked-table-wrap{
+    background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow-x:auto;box-shadow:var(--shadow);
+    user-select:none; -webkit-user-select:none;
+  }
+  table.locked-table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:760px;}
+  table.locked-table thead th{
+    text-align:right;background:var(--bg-2);color:var(--text-muted);font-size:11.5px;font-weight:800;
+    padding:13px 14px;border-bottom:2px solid var(--border);white-space:nowrap;position:sticky;top:0;
+  }
+  table.locked-table tbody td{padding:12px 14px;border-bottom:1px solid var(--border-soft);vertical-align:middle;}
+  table.locked-table tbody tr:last-child td{border-bottom:none;}
+  table.locked-table tbody tr:hover{background:var(--bg-2);}
+  table.locked-table .num{color:var(--text-dim);font-family:var(--font-mono);width:34px;}
+  table.locked-table .t-name{display:flex;align-items:center;gap:10px;font-weight:700;}
+  table.locked-table .t-icon{width:30px;height:30px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;color:var(--accent);font-size:12.5px;overflow:hidden;flex-shrink:0;}
+  table.locked-table .t-icon img{width:100%;height:100%;object-fit:cover;}
+  table.locked-table .t-cat-badge{display:inline-block;padding:4px 11px;border-radius:100px;font-size:11px;font-weight:700;white-space:nowrap;}
+  table.locked-table .t-link{color:var(--accent);font-size:12.5px;font-family:var(--font-mono);text-decoration:underline;word-break:break-all;}
+  table.locked-table .t-dim{color:var(--text-dim);}
+  table.locked-table .t-center{text-align:center;}
+  table.locked-table .t-check{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:13px;font-weight:800;}
+  table.locked-table .t-check.on{background:#1f7a4c1f;color:#1f7a4c;}
+  table.locked-table .t-check.off{background:#b3261e1f;color:#b3261e;}
+  table.locked-table .t-actions{display:flex;gap:6px;flex-wrap:nowrap;user-select:auto;-webkit-user-select:auto;}
+
+  table.user-table{width:100%;border-collapse:collapse;font-size:13px;}
+  table.user-table th{text-align:right;color:var(--text-dim);font-size:11px;font-weight:700;padding:8px 10px;border-bottom:1px solid var(--border);}
+  table.user-table td{padding:10px 10px;border-bottom:1px solid var(--border-soft);}
+  table.user-table tr:last-child td{border-bottom:none;}
+
+  @media (max-width:900px){
+    .stats-grid{grid-template-columns:repeat(2,1fr);}
+    .sidebar{position:fixed;right:0;top:0;transform:translateX(100%);transition:.25s ease;box-shadow:var(--shadow);}
+    .sidebar.open{transform:translateX(0);}
+    .topbar .menu-btn{display:flex;}
+    .content{padding:18px 14px 50px;}
+    .two-col{grid-template-columns:1fr;}
+    .detail-grid{grid-template-columns:1fr;}
+    .action-grid{grid-template-columns:1fr;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;transition:none !important;}
+  }
+  .overlay-bg{position:fixed;inset:0;background:#0006;z-index:35;}
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script type="module">
+/* ============================================================
+   المستودع — منصة إدارة البرامج
+   التخزين: Firebase Firestore (مشروعك الخاص) — البيانات مملوكة لك
+   بالكامل ومتاحة من أي جهاز/متصفح، وليست مرتبطة بهذا الملف فقط.
+   ============================================================ */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAVNDYHWYsD6TYkdaRloLQEL2_jnKAf-FI",
+  authDomain: "almaqtari-7a50b.firebaseapp.com",
+  projectId: "almaqtari-7a50b",
+  storageBucket: "almaqtari-7a50b.firebasestorage.app",
+  messagingSenderId: "955505497377",
+  appId: "1:955505497377:web:ccd89197cb9579fc4e5a60",
+  measurementId: "G-NVJS233KVW"
+};
+const fbApp = initializeApp(firebaseConfig);
+const fdb = getFirestore(fbApp);
+const FS_COLLECTION = 'programsPlatform'; // اسم المجموعة في Firestore
+
+const root = document.getElementById('root');
+const toastWrap = document.getElementById('toastWrap');
+
+const CATEGORIES = ['تعليمية','إدارية','مالية','تسويقية','تقنية','أخرى'];
+const CATEGORY_COLORS = {
+  'تعليمية':'var(--cat-1)',
+  'إدارية':'var(--cat-2)',
+  'مالية':'var(--cat-3)',
+  'تسويقية':'var(--cat-4)',
+  'تقنية':'var(--cat-5)',
+  'أخرى':'var(--cat-6)',
+};
+function catColor(cat){ return CATEGORY_COLORS[cat] || 'var(--cat-6)'; }
+
+let state = {
+  loading: true,
+  users: [],
+  programs: [],
+  log: [],
+  currentUser: null,
+  view: 'dashboard',
+  search: '',
+  categoryFilter: 'الكل',
+  sidebarOpen: false,
+  modal: null, // {type:'add'|'edit'|'details'|'preview'|'changePw', payload}
+};
+
+/* ---------------- storage helpers ---------------- */
+async function dbGet(key){
+  try{
+    const snap = await getDoc(doc(fdb, FS_COLLECTION, key));
+    return snap.exists() ? snap.data().list : null;
+  }catch(e){ console.error('firestore get failed', e); return null; }
+}
+async function dbSet(key, value){
+  try{
+    await setDoc(doc(fdb, FS_COLLECTION, key), {list: value, updatedAt: new Date().toISOString()});
+    return true;
+  }catch(e){ console.error('firestore set failed', e); toast('تعذّر الحفظ في Firebase — تحقّق من إعداد Firestore وقواعد الأمان','error'); return false; }
+}
+
+async function saveUsers(){ await dbSet('users', state.users); }
+async function savePrograms(){ await dbSet('programs', state.programs); }
+async function saveLog(){ await dbSet('changelog', state.log); }
+
+function addLog(action, target){
+  state.log.unshift({
+    action, target,
+    by: state.currentUser ? state.currentUser.username : 'نظام',
+    at: new Date().toISOString()
+  });
+  if(state.log.length > 300) state.log = state.log.slice(0,300);
+  saveLog();
+}
+
+/* ---------------- crypto ---------------- */
+async function hashPw(pw){
+  const enc = new TextEncoder().encode(pw);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ---------------- toast ---------------- */
+function toast(msg, type=''){
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  toastWrap.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='.25s'; setTimeout(()=>el.remove(),250); }, 2600);
+}
+
+/* ---------------- util ---------------- */
+function esc(s){
+  if(s === null || s === undefined) return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtDate(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('ar-EG', {year:'numeric',month:'2-digit',day:'2-digit'}) + ' ' + d.toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});
+}
+function initials(name){
+  if(!name) return '؟';
+  return name.trim().charAt(0);
+}
+function uid(){ return 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+
+/* ---------------- init / seed ---------------- */
+async function init(){
+  const [users, programs, log] = await Promise.all([dbGet('users'), dbGet('programs'), dbGet('changelog')]);
+  state.users = users || [];
+  state.programs = programs || [];
+  state.log = log || [];
+  state.loading = false;
+  render();
+}
+init();
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function render(){
+  if(state.loading){
+    root.innerHTML = `<div class="auth-wrap"><div style="color:var(--text-dim);font-size:13px;">...جارِ التحميل</div></div>`;
+    return;
+  }
+  if(!state.currentUser){
+    if(state.users.length === 0){ renderSetup(); }
+    else{ renderLogin(); }
+    return;
+  }
+  renderApp();
+}
+
+/* ---------------- SETUP (first run) ---------------- */
+function renderSetup(){
+  root.innerHTML = `
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="mark">م</div>
+        <div><h1>المستودع</h1><p>منصة إدارة البرامج المركزية</p></div>
+      </div>
+      <h2>إعداد أول مرة — إنشاء حساب المدير</h2>
+      <div class="auth-note">لا يوجد أي حساب بعد. أنشئ حساب المدير الرئيسي لبدء استخدام المنصة. ستُحفظ كلمة المرور بصيغة مشفّرة (SHA-256) ولن تُخزَّن كنص صريح.</div>
+      <div id="setupError"></div>
+      <form id="setupForm">
+        <div class="field"><label>اسم المستخدم</label><input type="text" id="su_user" required placeholder="admin" autocomplete="username"></div>
+        <div class="field"><label>كلمة المرور</label><input type="password" id="su_pw" required minlength="4" placeholder="••••••••" autocomplete="new-password"></div>
+        <div class="field"><label>تأكيد كلمة المرور</label><input type="password" id="su_pw2" required minlength="4" placeholder="••••••••" autocomplete="new-password"></div>
+        <button class="btn btn-primary" type="submit" style="width:100%;margin-top:6px;">إنشاء حساب المدير والدخول</button>
+      </form>
+    </div>
+  </div>`;
+  document.getElementById('setupForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const u = document.getElementById('su_user').value.trim();
+    const p = document.getElementById('su_pw').value;
+    const p2 = document.getElementById('su_pw2').value;
+    const errBox = document.getElementById('setupError');
+    if(p !== p2){ errBox.innerHTML = `<div class="auth-error">كلمتا المرور غير متطابقتين</div>`; return; }
+    const hash = await hashPw(p);
+    const user = {username:u, passwordHash:hash, role:'admin', createdAt:new Date().toISOString(), lastLogin:new Date().toISOString()};
+    state.users.push(user);
+    await saveUsers();
+    state.currentUser = user;
+    addLog('تسجيل دخول', `أول إعداد للمنصة بواسطة ${u}`);
+    toast('تم إنشاء حساب المدير بنجاح','success');
+    render();
+  });
+}
+
+/* ---------------- LOGIN ---------------- */
+function renderLogin(){
+  root.innerHTML = `
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="mark">م</div>
+        <div><h1>المستودع</h1><p>منصة إدارة البرامج المركزية</p></div>
+      </div>
+      <h2>تسجيل الدخول إلى حسابك</h2>
+      <div id="loginError"></div>
+      <form id="loginForm">
+        <div class="field"><label>اسم المستخدم</label><input type="text" id="li_user" required autocomplete="username"></div>
+        <div class="field"><label>كلمة المرور</label><input type="password" id="li_pw" required autocomplete="current-password"></div>
+        <button class="btn btn-primary" type="submit" style="width:100%;margin-top:6px;">دخول</button>
+      </form>
+    </div>
+  </div>`;
+  document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const u = document.getElementById('li_user').value.trim();
+    const p = document.getElementById('li_pw').value;
+    const errBox = document.getElementById('loginError');
+    const user = state.users.find(x=>x.username === u);
+    if(!user){ errBox.innerHTML = `<div class="auth-error">اسم المستخدم غير موجود</div>`; return; }
+    const hash = await hashPw(p);
+    if(hash !== user.passwordHash){ errBox.innerHTML = `<div class="auth-error">كلمة المرور غير صحيحة</div>`; return; }
+    user.lastLogin = new Date().toISOString();
+    await saveUsers();
+    state.currentUser = user;
+    state.view = 'dashboard';
+    addLog('تسجيل دخول', u);
+    render();
+  });
+}
+
+/* ---------------- APP SHELL ---------------- */
+function isAdmin(){ return state.currentUser && state.currentUser.role === 'admin'; }
+
+function renderApp(){
+  const navs = [
+    {id:'dashboard', label:'لوحة التحكم', ic:'▦'},
+    {id:'programs', label:'البرامج', ic:'▤'},
+    {id:'table', label:'جدول البرامج', ic:'🔒'},
+    {id:'log', label:'سجل التعديلات', ic:'☰'},
+    {id:'backup', label:'النسخ والاستيراد', ic:'⇅'},
+    {id:'settings', label:'الإعدادات', ic:'⚙'},
+  ];
+  root.innerHTML = `
+  <div class="shell">
+    ${state.sidebarOpen ? `<div class="overlay-bg" id="overlayBg"></div>` : ''}
+    <aside class="sidebar ${state.sidebarOpen ? 'open':''}" id="sidebar">
+      <div class="side-logo"><div class="mark">م</div><div><h1>المستودع</h1><p>منصة إدارة البرامج</p></div></div>
+      <div class="nav-group">
+        <div class="nav-label">القائمة</div>
+        ${navs.map(n=>`<div class="nav-item ${state.view===n.id?'active':''}" data-nav="${n.id}"><span class="ic">${n.ic}</span><span>${n.label}</span></div>`).join('')}
+      </div>
+      <div class="sidebar-foot">
+        <div class="user-chip">
+          <div class="av">${esc(initials(state.currentUser.username))}</div>
+          <div class="info">
+            <div class="name">${esc(state.currentUser.username)}</div>
+            <div class="role">${state.currentUser.role==='admin'?'مدير النظام':'مستخدم'}</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="logoutBtn" style="width:100%;margin-top:10px;">🚪 تسجيل خروج</button>
+      </div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <button class="btn btn-icon btn-ghost menu-btn" id="menuBtn">☰</button>
+        <h2 id="topTitle"></h2>
+        <div class="spacer"></div>
+        <div class="search-box"><span class="ic">🔍</span><input type="search" id="searchInput" placeholder="ابحث باسم البرنامج..." value="${esc(state.search)}"></div>
+        ${isAdmin() ? `<button class="btn btn-primary btn-sm" id="addProgBtn">+ إضافة برنامج</button>` : ''}
+      </div>
+      <div class="content" id="contentArea"></div>
+    </div>
+  </div>`;
+
+  document.getElementById('logoutBtn').onclick = ()=>{ state.currentUser=null; render(); };
+  document.getElementById('menuBtn').onclick = ()=>{ state.sidebarOpen = !state.sidebarOpen; render(); };
+  const ov = document.getElementById('overlayBg'); if(ov) ov.onclick = ()=>{ state.sidebarOpen=false; render(); };
+  root.querySelectorAll('[data-nav]').forEach(el=>{
+    el.onclick = ()=>{ state.view = el.dataset.nav; state.sidebarOpen=false; render(); };
+  });
+  const addBtn = document.getElementById('addProgBtn');
+  if(addBtn) addBtn.onclick = ()=> openModal('add');
+  const searchInput = document.getElementById('searchInput');
+  searchInput.oninput = ()=>{ state.search = searchInput.value; renderContent(); };
+
+  renderContent();
+}
+
+function renderContent(){
+  const titles = {dashboard:'لوحة التحكم', programs:'البرامج', table:'جدول البرامج', log:'سجل التعديلات', backup:'النسخ الاحتياطي والاستيراد', settings:'الإعدادات'};
+  const titleEl = document.getElementById('topTitle');
+  if(titleEl) titleEl.textContent = titles[state.view] || '';
+  const c = document.getElementById('contentArea');
+  if(!c) return;
+  if(state.view === 'dashboard') c.innerHTML = viewDashboard();
+  else if(state.view === 'programs') c.innerHTML = viewPrograms();
+  else if(state.view === 'table') c.innerHTML = viewProgramsTable();
+  else if(state.view === 'log') c.innerHTML = viewLog();
+  else if(state.view === 'backup') c.innerHTML = viewBackup();
+  else if(state.view === 'settings') c.innerHTML = viewSettings();
+  bindContentEvents();
+}
+
+/* ---------------- DASHBOARD ---------------- */
+function viewDashboard(){
+  const totalPrograms = state.programs.length;
+  const totalUsers = state.programs.reduce((s,p)=>s + (Number(p.userCount)||0), 0);
+  const activeCount = state.programs.filter(p=>p.status==='active').length;
+  const latest = [...state.programs].sort((a,b)=> new Date(b.addedDate)-new Date(a.addedDate))[0];
+
+  return `
+  <div class="stats-grid">
+    <div class="stat-card"><span class="stat-icon">▤</span><div class="stat-num">${totalPrograms}</div><div class="stat-label">عدد البرامج</div></div>
+    <div class="stat-card"><span class="stat-icon">◉</span><div class="stat-num">${totalUsers}</div><div class="stat-label">إجمالي المستخدمين</div></div>
+    <div class="stat-card"><span class="stat-icon">✓</span><div class="stat-num">${activeCount}</div><div class="stat-label">البرامج النشطة</div></div>
+    <div class="stat-card"><span class="stat-icon">★</span><div class="stat-num" style="font-size:16px;">${latest ? esc(latest.name) : '—'}</div><div class="stat-label">آخر برنامج مُضاف</div></div>
+  </div>
+  <div class="section-title">استعراض سريع للبرامج</div>
+  <div class="section-sub">أحدث البرامج المسجّلة في المستودع</div>
+  ${renderProgramGrid(sortByDateDesc(state.programs).slice(0,6))}
+  `;
+}
+
+function sortByDateDesc(arr){ return [...arr].sort((a,b)=> new Date(b.addedDate)-new Date(a.addedDate)); }
+
+/* ---------------- PROGRAMS VIEW ---------------- */
+function viewPrograms(){
+  const cats = ['الكل', ...CATEGORIES];
+  let list = state.programs.filter(p=>{
+    const matchSearch = !state.search || p.name.toLowerCase().includes(state.search.toLowerCase()) || (p.description||'').toLowerCase().includes(state.search.toLowerCase());
+    const matchCat = state.categoryFilter === 'الكل' || p.category === state.categoryFilter;
+    return matchSearch && matchCat;
+  });
+  list = sortByDateDesc(list);
+  return `
+  <div class="filter-row">
+    ${cats.map(c=>{
+      const isAll = c==='الكل';
+      const color = isAll ? 'var(--accent)' : catColor(c);
+      const activeStyle = state.categoryFilter===c ? `background:${color}1f;border-color:${color};color:${color};` : `color:${color};`;
+      return `<div class="chip ${state.categoryFilter===c?'active':''}" data-cat="${esc(c)}" style="${activeStyle}">${esc(c)}</div>`;
+    }).join('')}
+  </div>
+  ${renderProgramGrid(list)}
+  `;
+}
+
+function renderProgramGrid(list){
+  if(list.length === 0){
+    return `<div class="empty-state"><div class="ic">▤</div><h4>لا توجد برامج مطابقة</h4><p>${isAdmin() ? 'اضغط على "إضافة برنامج" من الأعلى للبدء' : 'جرّب تعديل كلمات البحث أو التصنيف'}</p></div>`;
+  }
+  return `<div class="card-grid">${list.map(p=>programCard(p)).join('')}</div>`;
+}
+
+function programCard(p){
+  const isActive = p.status === 'active';
+  return `
+  <div class="prog-card">
+    <span class="tab" style="background:${catColor(p.category)};">${esc(p.category||'أخرى')}</span>
+    <span class="stamp ${isActive?'on':'off'}">${isActive?'مفعّل':'غير مفعّل'}</span>
+    <div class="card-body">
+      <div class="card-head">
+        <div class="prog-icon">${p.icon ? `<img src="${p.icon}" alt="">` : esc(initials(p.name))}</div>
+        <div>
+          <h3>${esc(p.name)}</h3>
+          <div class="cat" style="color:${catColor(p.category)};">${esc(p.category||'—')}</div>
+        </div>
+      </div>
+      <p class="desc">${esc(p.description||'لا يوجد وصف')}</p>
+    </div>
+    <div class="perforation"></div>
+    <div class="card-meta">
+      <span>👥 ${p.userCount||0} مستخدم</span>
+      <span class="users">${fmtDate(p.addedDate).split(' ')[0]}</span>
+    </div>
+    <div class="card-actions">
+      <button class="btn btn-sm" data-details="${p.id}">👁 التفاصيل</button>
+      ${p.link ? `<a class="btn btn-sm" href="${esc(p.link)}" target="_blank" rel="noopener">🌐 دخول</a>` : ''}
+      ${p.htmlContent ? `<button class="btn btn-sm" data-download="${p.id}">⬇️ HTML</button>` : ''}
+    </div>
+  </div>`;
+}
+
+/* ---------------- READ-ONLY PROGRAMS TABLE ---------------- */
+function viewProgramsTable(){
+  const list = sortByDateDesc(state.programs);
+  if(list.length === 0){
+    return `<div class="empty-state"><div class="ic">🔒</div><h4>لا توجد برامج لعرضها</h4><p>سيظهر هنا جدول بجميع البرامج فور إضافتها</p></div>`;
+  }
+  return `
+  <div class="table-lock-note">🔒 هذا الجدول للعرض فقط ولا يمكن التعديل عليه مباشرة — لإجراء أي تعديل استخدم صفحة "البرامج".</div>
+  <div class="locked-table-wrap">
+    <table class="locked-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>اسم البرنامج</th>
+          <th>التصنيف</th>
+          <th>رابط الدخول</th>
+          <th>مفعل</th>
+          <th>غير مفعل</th>
+          <th>الدخول / التنزيل</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${list.map((p,i)=>{
+          const isActive = p.status === 'active';
+          const color = catColor(p.category);
+          return `
+          <tr>
+            <td class="num">${i+1}</td>
+            <td>
+              <div class="t-name">
+                <div class="t-icon">${p.icon ? `<img src="${esc(p.icon)}" alt="">` : esc(initials(p.name))}</div>
+                <span>${esc(p.name)}</span>
+              </div>
+            </td>
+            <td><span class="t-cat-badge" style="background:${color}1f;color:${color};border:1px solid ${color}55;">${esc(p.category||'—')}</span></td>
+            <td>${p.link ? `<a class="t-link" href="${esc(p.link)}" target="_blank" rel="noopener">${esc(p.link)}</a>` : `<span class="t-dim">—</span>`}</td>
+            <td class="t-center">${isActive ? '<span class="t-check on">✔</span>' : ''}</td>
+            <td class="t-center">${!isActive ? '<span class="t-check off">✔</span>' : ''}</td>
+            <td class="t-actions">
+              ${p.link ? `<a class="btn btn-sm" href="${esc(p.link)}" target="_blank" rel="noopener">🌐 دخول</a>` : `<button class="btn btn-sm" disabled>🌐 دخول</button>`}
+              ${p.htmlContent ? `<button class="btn btn-sm" data-download="${p.id}">⬇️ HTML</button>` : `<button class="btn btn-sm" disabled>⬇️ HTML</button>`}
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>
+  `;
+}
+
+/* ---------------- LOG VIEW ---------------- */
+function viewLog(){
+  if(state.log.length === 0){
+    return `<div class="empty-state"><div class="ic">☰</div><h4>لا توجد تعديلات بعد</h4><p>سيظهر هنا كل إجراء يتم على البرامج والحسابات</p></div>`;
+  }
+  const actionIcon = a => a.includes('حذف') ? '🗑' : a.includes('تعديل') ? '✏️' : a.includes('إضافة') ? '➕' : a.includes('دخول') ? '🔑' : '•';
+  return `
+  <div class="panel">
+    <h4>سجل جميع التعديلات</h4>
+    <p class="desc-sm">قائمة زمنية بكل عملية إضافة أو تعديل أو حذف تمت على المنصة</p>
+    <div class="log-list">
+      ${state.log.map(l=>`
+        <div class="log-item">
+          <div class="dot"></div>
+          <div>
+            <div class="txt">${actionIcon(l.action)} <b>${esc(l.by)}</b> — ${esc(l.action)}: ${esc(l.target)}</div>
+            <div class="meta">${fmtDate(l.at)}</div>
+          </div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* ---------------- BACKUP VIEW ---------------- */
+function viewBackup(){
+  return `
+  <div class="panel">
+    <h4>💾 نسخة احتياطية كاملة (JSON)</h4>
+    <p class="desc-sm">تصدير كل البيانات (البرامج، الحسابات، سجل التعديلات) في ملف واحد يمكن استيراده لاحقًا لاستعادة المنصة بالكامل.</p>
+    <div class="panel-actions">
+      <button class="btn btn-primary btn-sm" id="exportJsonBtn">⬇️ تصدير نسخة احتياطية</button>
+      ${isAdmin() ? `<button class="btn btn-sm" id="importJsonBtn">⬆️ استيراد نسخة احتياطية</button>
+      <input type="file" id="importJsonInput" accept=".json" class="hidden">` : ''}
+    </div>
+  </div>
+  <div class="panel">
+    <h4>📊 تصدير البرامج إلى Excel</h4>
+    <p class="desc-sm">تنزيل قائمة كل البرامج ببياناتها كملف Excel (xlsx) جاهز للأرشفة أو المشاركة.</p>
+    <div class="panel-actions">
+      <button class="btn btn-sm" id="exportExcelBtn">⬇️ تصدير Excel</button>
+    </div>
+  </div>
+  ${isAdmin() ? `
+  <div class="panel">
+    <h4>📥 استيراد برامج من Excel</h4>
+    <p class="desc-sm">ارفع ملف Excel أو CSV يحتوي أعمدة: اسم البرنامج، الوصف، رابط الدخول، عدد المستخدمين، التصنيف، الحالة — لإضافتها دفعة واحدة.</p>
+    <div class="file-drop" id="excelDrop">اضغط هنا لاختيار ملف Excel / CSV</div>
+    <input type="file" id="excelInput" accept=".xlsx,.xls,.csv" class="hidden">
+  </div>` : ''}
+  `;
+}
+
+/* ---------------- SETTINGS VIEW ---------------- */
+function viewSettings(){
+  return `
+  <div class="panel">
+    <h4>🔑 تغيير كلمة المرور</h4>
+    <p class="desc-sm">حساب: <b>${esc(state.currentUser.username)}</b></p>
+    <form id="pwForm">
+      <div class="two-col">
+        <div class="field"><label>كلمة المرور الحالية</label><input type="password" id="cp_old" required></div>
+        <div class="field"><label>كلمة المرور الجديدة</label><input type="password" id="cp_new" required minlength="4"></div>
+      </div>
+      <div id="pwMsg"></div>
+      <button class="btn btn-primary btn-sm" type="submit">تحديث كلمة المرور</button>
+    </form>
+  </div>
+  ${isAdmin() ? `
+  <div class="panel">
+    <h4>👥 إدارة المستخدمين</h4>
+    <p class="desc-sm">إضافة حسابات جديدة وتحديد الصلاحيات (مدير / مستخدم)</p>
+    <table class="user-table">
+      <thead><tr><th>اسم المستخدم</th><th>الصلاحية</th><th>آخر دخول</th><th></th></tr></thead>
+      <tbody>
+        ${state.users.map(u=>`
+          <tr>
+            <td>${esc(u.username)}</td>
+            <td><span class="badge badge-role">${u.role==='admin'?'مدير':'مستخدم'}</span></td>
+            <td style="font-family:var(--font-mono);font-size:11.5px;color:var(--text-muted);">${fmtDate(u.lastLogin)}</td>
+            <td>${u.username !== state.currentUser.username ? `<button class="btn btn-sm btn-danger" data-deluser="${esc(u.username)}">حذف</button>` : ''}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    <div style="height:14px;"></div>
+    <form id="addUserForm">
+      <div class="two-col">
+        <div class="field"><label>اسم المستخدم الجديد</label><input type="text" id="nu_user" required></div>
+        <div class="field"><label>كلمة المرور</label><input type="password" id="nu_pw" required minlength="4"></div>
+      </div>
+      <div class="field" style="max-width:200px;"><label>الصلاحية</label>
+        <select id="nu_role"><option value="user">مستخدم</option><option value="admin">مدير</option></select>
+      </div>
+      <button class="btn btn-sm" type="submit">+ إضافة مستخدم</button>
+    </form>
+  </div>` : ''}
+  `;
+}
+
+/* ============================================================
+   EVENTS (content-level, re-bound each render)
+   ============================================================ */
+function bindContentEvents(){
+  root.querySelectorAll('[data-cat]').forEach(el=>{
+    el.onclick = ()=>{ state.categoryFilter = el.dataset.cat; renderContent(); };
+  });
+  root.querySelectorAll('[data-details]').forEach(el=>{
+    el.onclick = ()=> openModal('details', findProgram(el.dataset.details));
+  });
+  root.querySelectorAll('[data-download]').forEach(el=>{
+    el.onclick = ()=> downloadHtml(findProgram(el.dataset.download));
+  });
+
+  const exportJsonBtn = document.getElementById('exportJsonBtn');
+  if(exportJsonBtn) exportJsonBtn.onclick = exportBackupJson;
+  const importJsonBtn = document.getElementById('importJsonBtn');
+  const importJsonInput = document.getElementById('importJsonInput');
+  if(importJsonBtn) importJsonBtn.onclick = ()=> importJsonInput.click();
+  if(importJsonInput) importJsonInput.onchange = handleImportJson;
+
+  const exportExcelBtn = document.getElementById('exportExcelBtn');
+  if(exportExcelBtn) exportExcelBtn.onclick = exportExcel;
+  const excelDrop = document.getElementById('excelDrop');
+  const excelInput = document.getElementById('excelInput');
+  if(excelDrop) excelDrop.onclick = ()=> excelInput.click();
+  if(excelInput) excelInput.onchange = handleImportExcel;
+
+  const pwForm = document.getElementById('pwForm');
+  if(pwForm) pwForm.addEventListener('submit', handleChangePw);
+  const addUserForm = document.getElementById('addUserForm');
+  if(addUserForm) addUserForm.addEventListener('submit', handleAddUser);
+  root.querySelectorAll('[data-deluser]').forEach(el=>{
+    el.onclick = ()=> handleDeleteUser(el.dataset.deluser);
+  });
+}
+
+function findProgram(id){ return state.programs.find(p=>p.id===id); }
+
+/* ---------------- program actions ---------------- */
+function downloadHtml(p){
+  if(!p || !p.htmlContent){ toast('لا يوجد ملف HTML لهذا البرنامج','error'); return; }
+  const blob = new Blob([p.htmlContent], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = (p.htmlFilename || (p.name + '.html'));
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast('تم تنزيل ملف HTML','success');
+}
+
+async function copyLink(link){
+  try{
+    await navigator.clipboard.writeText(link);
+    toast('تم نسخ الرابط','success');
+  }catch(e){
+    toast('تعذّر نسخ الرابط','error');
+  }
+}
+
+async function deleteProgram(id){
+  const p = findProgram(id);
+  if(!p) return;
+  if(!confirm(`هل تريد حذف برنامج "${p.name}" نهائيًا؟`)) return;
+  state.programs = state.programs.filter(x=>x.id!==id);
+  await savePrograms();
+  addLog('حذف برنامج', p.name);
+  closeModal();
+  toast('تم حذف البرنامج','success');
+  renderContent();
+}
+
+/* ---------------- change password / users ---------------- */
+async function handleChangePw(e){
+  e.preventDefault();
+  const oldPw = document.getElementById('cp_old').value;
+  const newPw = document.getElementById('cp_new').value;
+  const msg = document.getElementById('pwMsg');
+  const hash = await hashPw(oldPw);
+  if(hash !== state.currentUser.passwordHash){ msg.innerHTML = `<div class="auth-error">كلمة المرور الحالية غير صحيحة</div>`; return; }
+  const newHash = await hashPw(newPw);
+  state.currentUser.passwordHash = newHash;
+  const idx = state.users.findIndex(u=>u.username===state.currentUser.username);
+  state.users[idx] = state.currentUser;
+  await saveUsers();
+  addLog('تغيير كلمة المرور', state.currentUser.username);
+  toast('تم تحديث كلمة المرور','success');
+  msg.innerHTML = '';
+  e.target.reset();
+}
+
+async function handleAddUser(e){
+  e.preventDefault();
+  const u = document.getElementById('nu_user').value.trim();
+  const p = document.getElementById('nu_pw').value;
+  const role = document.getElementById('nu_role').value;
+  if(state.users.find(x=>x.username===u)){ toast('اسم المستخدم موجود مسبقًا','error'); return; }
+  const hash = await hashPw(p);
+  state.users.push({username:u, passwordHash:hash, role, createdAt:new Date().toISOString(), lastLogin:null});
+  await saveUsers();
+  addLog('إضافة مستخدم', u);
+  toast('تمت إضافة المستخدم','success');
+  renderContent();
+}
+
+async function handleDeleteUser(username){
+  if(!confirm(`حذف المستخدم "${username}"؟`)) return;
+  state.users = state.users.filter(u=>u.username!==username);
+  await saveUsers();
+  addLog('حذف مستخدم', username);
+  renderContent();
+}
+
+/* ---------------- backup / excel ---------------- */
+function exportBackupJson(){
+  const data = {users:state.users, programs:state.programs, changelog:state.log, exportedAt:new Date().toISOString()};
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `نسخة-احتياطية-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast('تم تصدير النسخة الاحتياطية','success');
+}
+
+function handleImportJson(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (ev)=>{
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(!confirm('سيتم استبدال كل البيانات الحالية بمحتوى الملف. هل تريد المتابعة؟')) return;
+      state.users = data.users || [];
+      state.programs = data.programs || [];
+      state.log = data.changelog || [];
+      await Promise.all([saveUsers(), savePrograms(), saveLog()]);
+      addLog('استيراد نسخة احتياطية', file.name);
+      toast('تم استيراد النسخة الاحتياطية','success');
+      renderContent();
+    }catch(err){ toast('ملف غير صالح','error'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function exportExcel(){
+  const rows = state.programs.map(p=>({
+    'اسم البرنامج': p.name,
+    'وصف مختصر': p.description||'',
+    'رابط الدخول': p.link||'',
+    'عدد المستخدمين': p.userCount||0,
+    'التصنيف': p.category||'',
+    'الحالة': p.status==='active' ? 'مفعل' : 'غير مفعل',
+    'تاريخ الإضافة': fmtDate(p.addedDate),
+    'آخر تحديث': fmtDate(p.updatedDate),
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'البرامج');
+  XLSX.writeFile(wb, `برامج-المستودع-${new Date().toISOString().slice(0,10)}.xlsx`);
+  addLog('تصدير Excel', `${rows.length} برنامج`);
+  toast('تم تصدير ملف Excel','success');
+}
+
+function handleImportExcel(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (ev)=>{
+    try{
+      const data = new Uint8Array(ev.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet);
+      let added = 0;
+      rows.forEach(r=>{
+        const name = r['اسم البرنامج'] || r['name'] || r['Name'];
+        if(!name) return;
+        state.programs.push({
+          id: uid(),
+          name: String(name),
+          description: r['وصف مختصر'] || r['description'] || '',
+          link: r['رابط الدخول'] || r['link'] || '',
+          htmlContent: '', htmlFilename:'',
+          icon: '',
+          category: r['التصنيف'] || r['category'] || 'أخرى',
+          userCount: Number(r['عدد المستخدمين'] || r['userCount'] || 0),
+          status: (r['الحالة']==='غير مفعل') ? 'inactive' : 'active',
+          addedDate: new Date().toISOString(),
+          updatedDate: new Date().toISOString(),
+        });
+        added++;
+      });
+      await savePrograms();
+      addLog('استيراد Excel', `${added} برنامج جديد`);
+      toast(`تم استيراد ${added} برنامج`,'success');
+      renderContent();
+    }catch(err){ toast('تعذّر قراءة الملف','error'); }
+  };
+  reader.readAsArrayBuffer(file);
+  e.target.value = '';
+}
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+function openModal(type, payload){
+  state.modal = {type, payload};
+  renderModal();
+}
+function closeModal(){
+  state.modal = null;
+  const ov = document.getElementById('modalOverlay');
+  if(ov) ov.remove();
+}
+
+function renderModal(){
+  const existing = document.getElementById('modalOverlay');
+  if(existing) existing.remove();
+  if(!state.modal) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'modal-overlay';
+  wrap.id = 'modalOverlay';
+  wrap.innerHTML = modalContent();
+  document.body.appendChild(wrap);
+  wrap.addEventListener('mousedown', (e)=>{ if(e.target === wrap) closeModal(); });
+  bindModalEvents();
+}
+
+function modalContent(){
+  const {type, payload} = state.modal;
+  if(type === 'add' || type === 'edit') return formModal(type, payload);
+  if(type === 'details') return detailsModal(payload);
+  if(type === 'preview') return previewModal(payload);
+  return '';
+}
+
+/* ---------------- Add / Edit form modal ---------------- */
+function formModal(type, p){
+  const editing = type === 'edit';
+  const v = p || {name:'',description:'',link:'',category:CATEGORIES[0],userCount:0,status:'active',icon:'',htmlContent:'',htmlFilename:''};
+  return `
+  <div class="modal wide">
+    <div class="modal-head"><h3>${editing ? '✏️ تعديل بيانات البرنامج' : '➕ إضافة برنامج جديد'}</h3><button class="modal-close" id="mClose">✕</button></div>
+    <div class="modal-body">
+      <form id="progForm">
+        <div class="two-col">
+          <div class="field"><label>اسم البرنامج *</label><input type="text" id="f_name" required value="${esc(v.name)}" placeholder="مثال: برنامج إدارة الحلقات"></div>
+          <div class="field"><label>التصنيف</label>
+            <select id="f_cat">${CATEGORIES.map(c=>`<option value="${c}" ${v.category===c?'selected':''}>${c}</option>`).join('')}</select>
+          </div>
+        </div>
+        <div class="field"><label>وصف مختصر</label><textarea id="f_desc" placeholder="تعريف سريع بوظيفة البرنامج">${esc(v.description)}</textarea></div>
+        <div class="two-col">
+          <div class="field"><label>رابط الدخول</label><input type="url" id="f_link" value="${esc(v.link)}" placeholder="https://"></div>
+          <div class="field"><label>عدد المستخدمين</label><input type="number" id="f_users" min="0" value="${v.userCount||0}"></div>
+        </div>
+        <div class="two-col">
+          <div class="field"><label>الحالة</label>
+            <select id="f_status"><option value="active" ${v.status==='active'?'selected':''}>مفعل</option><option value="inactive" ${v.status==='inactive'?'selected':''}>غير مفعل</option></select>
+          </div>
+          <div class="field"><label>أيقونة البرنامج (صورة)</label>
+            <input type="file" id="f_icon" accept="image/*">
+            <span class="hint">${v.icon ? 'يوجد أيقونة محفوظة — اختر ملفًا جديدًا لاستبدالها' : 'اختياري'}</span>
+          </div>
+        </div>
+        <div class="field"><label>ملف HTML الخاص بالبرنامج</label>
+          <input type="file" id="f_html" accept=".html,.htm">
+          <span class="hint">${v.htmlFilename ? `الملف الحالي: ${esc(v.htmlFilename)} — اختر ملفًا جديدًا لاستبداله` : 'اختياري — يتيح تنزيل نسخة HTML من البرنامج'}</span>
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" id="saveProgBtn">${editing ? 'حفظ التعديلات' : 'إضافة البرنامج'}</button>
+      <button class="btn btn-ghost" id="cancelProgBtn">إلغاء</button>
+      ${editing ? `<div class="spacer"></div><button class="btn btn-danger" id="deleteProgBtn">🗑 حذف البرنامج</button>` : ''}
+    </div>
+  </div>`;
+}
+
+/* ---------------- Details modal ---------------- */
+function detailsModal(p){
+  const isActive = p.status === 'active';
+  return `
+  <div class="modal">
+    <div class="modal-head"><h3>تفاصيل البرنامج</h3><button class="modal-close" id="mClose">✕</button></div>
+    <div class="modal-body">
+      <div class="detail-head">
+        <div class="detail-icon">${p.icon ? `<img src="${p.icon}" alt="">` : esc(initials(p.name))}</div>
+        <div>
+          <h3 style="font-family:var(--font-display);margin:0 0 4px;font-size:18px;">${esc(p.name)}</h3>
+          <span class="badge ${isActive?'badge-active':'badge-inactive'}">${isActive?'مفعّل':'غير مفعّل'}</span>
+          <span class="badge badge-role" style="margin-right:6px;background:${catColor(p.category)}1f;color:${catColor(p.category)};border:1px solid ${catColor(p.category)}55;">${esc(p.category||'—')}</span>
+        </div>
+      </div>
+      <p style="color:var(--text-muted);font-size:13.5px;line-height:1.8;">${esc(p.description||'لا يوجد وصف')}</p>
+      <div class="detail-grid">
+        <div class="detail-stat"><div class="l">عدد المستخدمين</div><div class="v">${p.userCount||0}</div></div>
+        <div class="detail-stat"><div class="l">تاريخ الإنشاء</div><div class="v" style="font-size:12px;">${fmtDate(p.addedDate)}</div></div>
+        <div class="detail-stat"><div class="l">آخر تحديث</div><div class="v" style="font-size:12px;">${fmtDate(p.updatedDate)}</div></div>
+        <div class="detail-stat"><div class="l">ملف HTML</div><div class="v" style="font-size:12px;">${p.htmlContent ? '✅ متوفر' : '— غير مرفوع'}</div></div>
+      </div>
+      ${p.link ? `<div class="link-row"><span>🔗 ${esc(p.link)}</span><button class="btn btn-sm btn-icon" id="copyLinkBtn">📋</button></div>` : ''}
+      <div class="action-grid">
+        ${p.link ? `<a class="btn btn-primary" href="${esc(p.link)}" target="_blank" rel="noopener">🌐 الدخول إلى البرنامج</a>` : `<button class="btn" disabled>🌐 لا يوجد رابط</button>`}
+        ${p.htmlContent ? `<button class="btn" id="downloadBtn2">⬇️ تنزيل ملف HTML</button>` : `<button class="btn" disabled>⬇️ لا يوجد ملف HTML</button>`}
+        ${p.htmlContent ? `<button class="btn" id="previewBtn">👁 معاينة HTML</button>` : `<button class="btn" disabled>👁 لا توجد معاينة</button>`}
+        ${isAdmin() ? `<button class="btn btn-primary" id="editFromDetailsBtn">✏️ تعديل البيانات</button>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- Preview modal ---------------- */
+function previewModal(p){
+  return `
+  <div class="modal wide">
+    <div class="modal-head"><h3>معاينة: ${esc(p.name)}</h3><button class="modal-close" id="mClose">✕</button></div>
+    <div class="modal-body" style="padding:0;">
+      <iframe srcdoc="${esc(p.htmlContent)}" style="width:100%;height:60vh;border:0;background:#fff;border-radius:0 0 18px 18px;"></iframe>
+    </div>
+  </div>`;
+}
+
+/* ---------------- modal event binding ---------------- */
+function bindModalEvents(){
+  const mClose = document.getElementById('mClose');
+  if(mClose) mClose.onclick = closeModal;
+
+  const cancelBtn = document.getElementById('cancelProgBtn');
+  if(cancelBtn) cancelBtn.onclick = closeModal;
+
+  const saveBtn = document.getElementById('saveProgBtn');
+  if(saveBtn) saveBtn.onclick = handleSaveProgram;
+
+  const deleteBtn = document.getElementById('deleteProgBtn');
+  if(deleteBtn) deleteBtn.onclick = ()=> deleteProgram(state.modal.payload.id);
+
+  const copyBtn = document.getElementById('copyLinkBtn');
+  if(copyBtn) copyBtn.onclick = ()=> copyLink(state.modal.payload.link);
+
+  const dl2 = document.getElementById('downloadBtn2');
+  if(dl2) dl2.onclick = ()=> downloadHtml(state.modal.payload);
+
+  const prevBtn = document.getElementById('previewBtn');
+  if(prevBtn) prevBtn.onclick = ()=> openModal('preview', state.modal.payload);
+
+  const editBtn = document.getElementById('editFromDetailsBtn');
+  if(editBtn) editBtn.onclick = ()=> openModal('edit', state.modal.payload);
+}
+
+async function handleSaveProgram(){
+  const name = document.getElementById('f_name').value.trim();
+  if(!name){ toast('اسم البرنامج مطلوب','error'); return; }
+  const desc = document.getElementById('f_desc').value.trim();
+  const link = document.getElementById('f_link').value.trim();
+  const cat = document.getElementById('f_cat').value;
+  const users = Number(document.getElementById('f_users').value) || 0;
+  const status = document.getElementById('f_status').value;
+  const iconFile = document.getElementById('f_icon').files[0];
+  const htmlFile = document.getElementById('f_html').files[0];
+
+  const editing = state.modal.type === 'edit';
+  const existing = editing ? state.modal.payload : null;
+
+  let icon = existing ? existing.icon : '';
+  let htmlContent = existing ? existing.htmlContent : '';
+  let htmlFilename = existing ? existing.htmlFilename : '';
+
+  const finalize = async ()=>{
+    const now = new Date().toISOString();
+    if(editing){
+      Object.assign(existing, {name, description:desc, link, category:cat, userCount:users, status, icon, htmlContent, htmlFilename, updatedDate:now});
+      addLog('تعديل برنامج', name);
+      toast('تم حفظ التعديلات','success');
+    }else{
+      state.programs.push({id:uid(), name, description:desc, link, category:cat, userCount:users, status, icon, htmlContent, htmlFilename, addedDate:now, updatedDate:now});
+      addLog('إضافة برنامج', name);
+      toast('تمت إضافة البرنامج','success');
+    }
+    await savePrograms();
+    closeModal();
+    renderContent();
+  };
+
+  const readers = [];
+  if(iconFile){
+    readers.push(new Promise(res=>{
+      const r = new FileReader();
+      r.onload = ()=>{ icon = r.result; res(); };
+      r.readAsDataURL(iconFile);
+    }));
+  }
+  if(htmlFile){
+    readers.push(new Promise(res=>{
+      const r = new FileReader();
+      r.onload = ()=>{ htmlContent = r.result; htmlFilename = htmlFile.name; res(); };
+      r.readAsText(htmlFile);
+    }));
+  }
+  if(readers.length) await Promise.all(readers);
+  await finalize();
+}
+</script>
+</body>
+</html>
